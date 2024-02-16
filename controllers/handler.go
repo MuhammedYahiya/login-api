@@ -4,10 +4,12 @@ import (
 	"login-api/models"
 	"net/http"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
 func Login(c *gin.Context) {
+	session := sessions.Default(c)
 	var user models.User
 	if err := c.BindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -18,8 +20,11 @@ func Login(c *gin.Context) {
 
 	for _, u := range models.Users {
 		if u.Username == user.Username && u.Password == user.Password {
+			session.Set("username", user.Username)
+			session.Save()
 			c.JSON(http.StatusOK, gin.H{
-				"message": "login successful",
+				"message":    "login successful",
+				"session_id": session.Get("username"),
 			})
 			return
 		}
